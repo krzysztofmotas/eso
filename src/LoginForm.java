@@ -62,7 +62,7 @@ public class LoginForm extends JFrame {
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (passwordField.getText().isBlank()) {
+                if (new String(passwordField.getPassword()).isBlank()) {
                     passwordField.setText(PASSWORD_PLACEHOLDER);
                     passwordField.setEchoChar((char) 0);
                     passwordFieldHasPlaceholder = true;
