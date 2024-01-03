@@ -132,7 +132,7 @@ public class LoginForm extends JFrame {
 
                 ResultSet resultSet = preparedStatement.executeQuery();
 
-                if (!resultSet.isBeforeFirst()) { // nie znaleziono żadnego użytkownika
+                if (!resultSet.next()) { // nie znaleziono żadnego użytkownika
                     JOptionPane.showMessageDialog(
                             this,
                             "Podano nieprawidłowy adres e-mail lub hasło.",
@@ -142,8 +142,17 @@ public class LoginForm extends JFrame {
 
                     return;
                 }
+                dispose();
 
-                // dalsza część kodu, przekierowanie do dashboardu
+                User user = new User(
+                        resultSet.getInt("id"),
+                        emailAddress,
+                        resultSet.getString("name"),
+                        resultSet.getString("surname")
+                );
+
+                DashboardForm dashboardForm = new DashboardForm(user);
+                dashboardForm.setVisible(true);
 
             } catch (SQLException exception) {
                 JOptionPane.showMessageDialog(
