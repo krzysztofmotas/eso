@@ -5,7 +5,7 @@ public class Database {
                                 DB_USER = "admin",
                                 DB_PASSWORD = "admin";
 
-    private Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
     }
 }

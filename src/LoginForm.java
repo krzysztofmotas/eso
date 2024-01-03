@@ -1,7 +1,10 @@
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class LoginForm extends JFrame {
     private static final String EMAIL_PLACEHOLDER = "Podaj adres e-mail",
@@ -67,6 +70,88 @@ public class LoginForm extends JFrame {
                     passwordField.setEchoChar((char) 0);
                     passwordFieldHasPlaceholder = true;
                 }
+            }
+        });
+
+
+        // umożliwienie zatwierdzenia danych poprzez klawisz enter
+        getRootPane().setDefaultButton(loginButton);
+
+        loginButton.addActionListener(e -> {
+            if (emailFieldHasPlaceholder || passwordFieldHasPlaceholder) {
+                return;
+            }
+
+            String emailAddress = emailField.getText();
+
+            if (!Utilities.emailPatternMatches(emailAddress)) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        """
+                            Podano nieprawidłowy format adresu e-mail!
+                            Przykład: example@gmail.com
+                            
+                            (maksymalnie 100 znaków)
+                        """,
+                        "Błąd logowania",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+                return;
+            }
+
+            String password = new String(passwordField.getPassword());
+
+            if (!Utilities.passwordPatternMatches(password)) {
+                JOptionPane.showMessageDialog(
+                        this,
+
+                        // https://www.baeldung.com/java-text-blocks
+                        """
+                            Podano nieprawidłowy format hasła!
+
+                            Prawidłowe hasło posiada:
+                            - minimum 8 znaków
+                            - maksymalnie 100 znaków
+                            - conajmniej jedną literę
+                            - conajmniej jedną cyfrę
+                        """,
+                        "Błąd logowania",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+                return;
+            }
+
+            try {
+                Connection connection = Database.getConnection();
+
+                PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM accounts WHERE email = ? AND password = ?");
+                preparedStatement.setString(1, emailAddress);
+                preparedStatement.setString(2, password);
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                if (!resultSet.isBeforeFirst()) { // nie znaleziono żadnego użytkownika
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Podano nieprawidłowy adres e-mail lub hasło.",
+                            "Błąd logowania",
+                            JOptionPane.PLAIN_MESSAGE
+                    );
+
+                    return;
+                }
+
+                // dalsza część kodu, przekierowanie do dashboardu
+
+            } catch (SQLException exception) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Wystąpił poważny błąd i logowanie nie mogło dojść do skutku.",
+                        "Błąd logowania",
+                        JOptionPane.PLAIN_MESSAGE
+                );
             }
         });
     }
