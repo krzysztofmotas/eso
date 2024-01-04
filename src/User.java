@@ -1,16 +1,18 @@
 public class User {
     private int id;
     private String emailAddress, name, surname;
+    private Role role;
 
     public User() {
 
     }
 
-    public User(int id, String emailAddress, String name, String surname) {
+    public User(int id, String emailAddress, String name, String surname, Role role) {
         setId(id);
         setEmailAddress(emailAddress);
         setName(name);
         setSurname(surname);
+        setRole(role);
     }
 
     public String getEmailAddress() {
@@ -43,5 +45,13 @@ public class User {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

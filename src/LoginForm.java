@@ -144,17 +144,24 @@ public class LoginForm extends JFrame {
                 }
                 dispose();
 
+                Role role = Role.fromInt(resultSet.getInt("role"));
+
+                if (role == null) {
+                    throw new NullPointerException();
+                }
+
                 User user = new User(
                         resultSet.getInt("id"),
                         emailAddress,
                         resultSet.getString("name"),
-                        resultSet.getString("surname")
+                        resultSet.getString("surname"),
+                        role
                 );
 
                 DashboardForm dashboardForm = new DashboardForm(user);
                 dashboardForm.setVisible(true);
 
-            } catch (SQLException exception) {
+            } catch (SQLException | NullPointerException exception) {
                 JOptionPane.showMessageDialog(
                         this,
                         "Wystąpił poważny błąd i logowanie nie mogło dojść do skutku.",
@@ -163,5 +170,15 @@ public class LoginForm extends JFrame {
                 );
             }
         });
+
+        if (Main.AUTOMATIC_LOGIN) {
+            emailField.setText("motas.krzysztof@gmail.com");
+            passwordField.setText("test123456");
+
+            emailFieldHasPlaceholder = false;
+            passwordFieldHasPlaceholder = false;
+
+            loginButton.doClick();
+        }
     }
 }
