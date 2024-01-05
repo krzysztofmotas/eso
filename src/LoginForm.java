@@ -161,6 +161,8 @@ public class LoginForm extends JFrame {
                 DashboardForm dashboardForm = new DashboardForm(user);
                 dashboardForm.setVisible(true);
 
+                preparedStatement.close();
+                connection.close();
             } catch (SQLException | NullPointerException exception) {
                 JOptionPane.showMessageDialog(
                         this,
