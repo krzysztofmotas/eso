@@ -1,12 +1,18 @@
 public enum Role {
-    STUDENT("Student"),
-    TEACHER("Nauczyciel"),
-    ADMIN("Administrator");
+    STUDENT(0, "Student"),
+    TEACHER(1, "Nauczyciel"),
+    ADMIN(2, "Administrator");
 
     private final String name;
+    private final int id;
 
-    Role(String name) {
+    Role(int id, String name) {
+        this.id = id;
         this.name = name;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {

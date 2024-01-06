@@ -1,16 +1,15 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DashboardForm extends JFrame {
-    private JPanel mainPanel;
+    private JPanel mainPanel, addGradesPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel;
-    private JTable gradesTable;
+    private JTable gradesTable, studentsTable;
     private JScrollPane gradesScrollPane;
+    private JButton confirmAddGradesButton;
+    private JComboBox subjectTypeComboBox, gradesTypeComboBox;
     private final User user;
 
     public DashboardForm(User user) {
@@ -21,6 +20,7 @@ public class DashboardForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
+        pack();
 
         nameLabel.setText(user.getName() + " " + user.getSurname());
         emailLabel.setText(user.getEmailAddress());
@@ -33,12 +33,99 @@ public class DashboardForm extends JFrame {
                 updateGradesTable();
             }
             case TEACHER -> {
-
+                tabbedPane.addTab("Wstawianie ocen", addGradesPanel);
+                updateAddGradesPanel();
             }
 
             case ADMIN -> {
 
             }
+        }
+    }
+
+    private static final String gradeTypesList[] = {
+            "Praca domowa",
+            "Kolokwium",
+            "Projekt",
+            "Aktywność",
+            "Egzamin",
+            "Inne"
+    };
+
+    private static final double gradesList[] = {
+            2.0,
+            3.0,
+            3.5,
+            4.0,
+            4.5,
+            5.0
+    };
+
+    private void updateAddGradesPanel() {
+        gradesTypeComboBox.removeAllItems();
+
+        for (String type : gradeTypesList) {
+            gradesTypeComboBox.addItem(type);
+        }
+
+        gradesTypeComboBox.setSelectedIndex(-1);
+
+        try {
+            Connection connection = Database.getConnection();
+            Statement statement = connection.createStatement();
+
+            ResultSet subjectsResultSet = statement.executeQuery("SELECT * FROM subjects");
+
+            subjectTypeComboBox.removeAllItems();
+            while (subjectsResultSet.next()) {
+                // pasowałoby dodać pobieranie id, żeby obeszło się bez wydłużania zapytania sql
+                // w celu wyszukania id przedmiotu po jego nazwie
+                subjectTypeComboBox.addItem(subjectsResultSet.getString("name"));
+            }
+
+            subjectTypeComboBox.setSelectedIndex(-1);
+
+            DefaultTableModel defaultTableModel = new DefaultTableModel(
+                    new String[] {
+                            "Nr indeksu",
+                            "Imię i nazwisko",
+                            "Nowa ocena"
+                    },
+                    0
+            ) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 2; // 2 - nowa ocena
+                }
+            };
+
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, name, surname FROM accounts WHERE role = ?");
+            preparedStatement.setInt(1, Role.STUDENT.getId());
+
+            ResultSet studentsResultSet = preparedStatement.executeQuery();
+            while (studentsResultSet.next()) {
+                defaultTableModel.addRow(
+                        new String[] {
+                                String.valueOf(studentsResultSet.getInt("id")),
+                                studentsResultSet.getString("name") + " " + studentsResultSet.getString("surname")
+                        }
+                );
+            }
+
+            JComboBox<Double> gradeComboBox = new JComboBox<>();
+
+            for (double grade : gradesList) {
+                gradeComboBox.addItem(Double.valueOf(grade));
+            }
+
+            studentsTable.setModel(defaultTableModel);
+            studentsTable.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(gradeComboBox));
+
+            preparedStatement.close();
+            statement.close();
+            connection.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
         }
     }
 
