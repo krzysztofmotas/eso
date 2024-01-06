@@ -9,7 +9,7 @@ public class DashboardForm extends JFrame {
     private JTable gradesTable, studentsTable;
     private JScrollPane gradesScrollPane;
     private JButton confirmAddGradesButton;
-    private JComboBox subjectTypeComboBox, gradesTypeComboBox;
+    private JComboBox<String> subjectTypeComboBox, gradesTypeComboBox;
     private final User user;
 
     public DashboardForm(User user) {
@@ -43,7 +43,7 @@ public class DashboardForm extends JFrame {
         }
     }
 
-    private static final String gradeTypesList[] = {
+    private static final String[] gradeTypesList = {
             "Praca domowa",
             "Kolokwium",
             "Projekt",
@@ -52,7 +52,7 @@ public class DashboardForm extends JFrame {
             "Inne"
     };
 
-    private static final double gradesList[] = {
+    private static final double[] gradesList = {
             2.0,
             3.0,
             3.5,
@@ -115,7 +115,7 @@ public class DashboardForm extends JFrame {
             JComboBox<Double> gradeComboBox = new JComboBox<>();
 
             for (double grade : gradesList) {
-                gradeComboBox.addItem(Double.valueOf(grade));
+                gradeComboBox.addItem(grade);
             }
 
             studentsTable.setModel(defaultTableModel);
@@ -125,7 +125,7 @@ public class DashboardForm extends JFrame {
             statement.close();
             connection.close();
         } catch (SQLException exception) {
-            exception.printStackTrace();
+            // JOptionPane...
         }
     }
 
