@@ -1,16 +1,19 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import java.sql.*;
+import java.util.*;
 
 public class DashboardForm extends JFrame {
     private JPanel mainPanel, addGradesPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel;
     private JTable gradesTable, studentsTable;
-    private JScrollPane gradesScrollPane;
+    private JScrollPane gradesScrollPane, addGradesScrollPane;
     private JButton confirmAddGradesButton;
-    private JComboBox<String> subjectTypeComboBox, gradesTypeComboBox;
+    private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
     private final User user;
+    private final HashMap<String, Integer> subjectsHashMap = new HashMap<>();
 
     public DashboardForm(User user) {
         this.user = user;
@@ -41,6 +44,88 @@ public class DashboardForm extends JFrame {
 
             }
         }
+
+        confirmAddGradesButton.addActionListener(e -> {
+            String selectedSubject = (String) subjectsComboBox.getSelectedItem();
+            if (selectedSubject == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Nie wybrano przedmiotu!",
+                        "Błąd",
+                        JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+            String selectedGradeType = (String) gradesTypeComboBox.getSelectedItem();
+            if (selectedGradeType == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Nie wybrano typu oceny!",
+                        "Błąd",
+                        JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+            // id danego wybranego przedmiotu na podstawie klucza, jakim jest jego nazwa
+            int selectedSubjectId = subjectsHashMap.get(selectedSubject);
+
+            // liczba wstawionych ocen
+            int gradesCount = 0;
+
+            try {
+                Connection connection = Database.getConnection();
+                String sql = "INSERT INTO grades (student_id, teacher_id, grade, type, subject_id) VALUES (?, ?, ?, ?, ?)";
+
+                for (int i = 0; i < studentsTable.getRowCount(); i++) {
+                    CellEditor cellEditor = studentsTable.getCellEditor(i, 2);
+                    Object grade = cellEditor.getCellEditorValue();
+
+                    if (grade == null) {
+                        // dla danego studenta nie zmieniono oceny
+                        continue;
+                    }
+                    int id = Integer.parseInt((String) studentsTable.getValueAt(i, 0));
+
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                    preparedStatement.setInt(1, id);
+                    preparedStatement.setInt(2, user.getId());
+                    preparedStatement.setDouble(3, (Double) grade);
+                    preparedStatement.setString(4, selectedGradeType);
+                    preparedStatement.setInt(5, selectedSubjectId);
+
+                    preparedStatement.execute();
+                    preparedStatement.close();
+
+                    gradesCount++;
+                }
+
+                if (gradesCount == 0) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Nie została dodana żadna nowa ocena.",
+                            "Ostrzeżenie",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                } else {
+                    updateAddGradesPanel();
+
+                    JOptionPane.showMessageDialog(
+                         this,
+                         "Pomyślnie dodano nowe oceny. Liczba ocen: " + gradesCount,
+                         "Informacja",
+                         JOptionPane.INFORMATION_MESSAGE
+                    );
+                }
+
+                connection.close();
+            } catch (SQLException exception) {
+                showErrorMessageDialog(exception);
+            }
+        });
     }
 
     private static final String[] gradeTypesList = {
@@ -52,7 +137,7 @@ public class DashboardForm extends JFrame {
             "Inne"
     };
 
-    private static final double[] gradesList = {
+    private static final Double[] gradesList = {
             2.0,
             3.0,
             3.5,
@@ -76,14 +161,14 @@ public class DashboardForm extends JFrame {
 
             ResultSet subjectsResultSet = statement.executeQuery("SELECT * FROM subjects");
 
-            subjectTypeComboBox.removeAllItems();
+            subjectsComboBox.removeAllItems();
+            subjectsHashMap.clear();
             while (subjectsResultSet.next()) {
-                // pasowałoby dodać pobieranie id, żeby obeszło się bez wydłużania zapytania sql
-                // w celu wyszukania id przedmiotu po jego nazwie
-                subjectTypeComboBox.addItem(subjectsResultSet.getString("name"));
+                subjectsHashMap.put(subjectsResultSet.getString("name"), subjectsResultSet.getInt("id"));
+                subjectsComboBox.addItem(subjectsResultSet.getString("name"));
             }
 
-            subjectTypeComboBox.setSelectedIndex(-1);
+            subjectsComboBox.setSelectedIndex(-1);
 
             DefaultTableModel defaultTableModel = new DefaultTableModel(
                     new String[] {
@@ -112,20 +197,39 @@ public class DashboardForm extends JFrame {
                 );
             }
 
-            JComboBox<Double> gradeComboBox = new JComboBox<>();
+            studentsTable = new JTable(defaultTableModel) {
+                private final HashMap<Integer, DefaultCellEditor> cellEditors = new HashMap<>();
 
-            for (double grade : gradesList) {
-                gradeComboBox.addItem(grade);
-            }
+                @Override
+                public TableCellEditor getCellEditor(int row, int column) {
+                    if (column == 2) { // 2 - nowa ocena
+                        if (cellEditors.containsKey(row)) {
+                            return cellEditors.get(row);
+                        } else {
+                            JComboBox<Double> comboBox = new JComboBox<>(gradesList);
+                            comboBox.setSelectedIndex(-1);
 
-            studentsTable.setModel(defaultTableModel);
-            studentsTable.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(gradeComboBox));
+                            DefaultCellEditor newCellEditor = new DefaultCellEditor(comboBox);
+                            cellEditors.put(row, newCellEditor);
+
+                            return newCellEditor;
+                        }
+                    }
+
+                    return super.getCellEditor(row, column);
+                }
+            };
+
+            studentsTable.getTableHeader().setReorderingAllowed(false);
+
+            addGradesScrollPane.add(studentsTable);
+            addGradesScrollPane.setViewportView(studentsTable);
 
             preparedStatement.close();
             statement.close();
             connection.close();
         } catch (SQLException exception) {
-            // JOptionPane...
+            showErrorMessageDialog(exception);
         }
     }
 
@@ -178,7 +282,18 @@ public class DashboardForm extends JFrame {
             preparedStatement.close();
             connection.close();
         } catch (SQLException exception) {
-            // exception.printStackTrace();
+            showErrorMessageDialog(exception);
         }
+    }
+
+    private void showErrorMessageDialog(Exception exception) {
+        exception.printStackTrace();
+
+        JOptionPane.showMessageDialog(
+            this,
+            "Wystąpił błąd i czynność nie mogła zostać zakończona.",
+            "Błąd",
+            JOptionPane.ERROR_MESSAGE
+        );
     }
 }
