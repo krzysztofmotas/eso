@@ -10,7 +10,7 @@ public class DashboardForm extends JFrame {
     private JLabel nameLabel, emailLabel, roleNameLabel;
     private JTable gradesTable, studentsTable;
     private JScrollPane gradesScrollPane, addGradesScrollPane;
-    private JButton confirmAddGradesButton;
+    private JButton confirmAddGradesButton, logoutButton;
     private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
     private final User user;
     private final HashMap<String, Integer> subjectsHashMap = new HashMap<>();
@@ -23,7 +23,8 @@ public class DashboardForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
-        pack();
+        setSize(800, 400);
+        setResizable(false);
 
         nameLabel.setText(user.getName() + " " + user.getSurname());
         emailLabel.setText(user.getEmailAddress());
@@ -125,6 +126,13 @@ public class DashboardForm extends JFrame {
             } catch (SQLException exception) {
                 showErrorMessageDialog(exception);
             }
+        });
+
+        logoutButton.addActionListener(e -> {
+            dispose();
+
+            LoginForm loginForm = new LoginForm(false);
+            loginForm.setVisible(true);
         });
     }
 

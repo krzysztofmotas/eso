@@ -18,7 +18,7 @@ public class LoginForm extends JFrame {
     private JTextField emailField;
     private JPasswordField passwordField;
 
-    public LoginForm() {
+    public LoginForm(boolean automaticLogin) {
         setTitle("Elektroniczny system oceniania");
         setResizable(false);
         setLocationRelativeTo(null);
@@ -166,14 +166,14 @@ public class LoginForm extends JFrame {
             } catch (SQLException | NullPointerException exception) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Wystąpił poważny błąd i logowanie nie mogło dojść do skutku.",
+                        "Wystąpił błąd i logowanie nie mogło dojść do skutku.",
                         "Błąd logowania",
                         JOptionPane.PLAIN_MESSAGE
                 );
             }
         });
 
-        if (Main.AUTOMATIC_LOGIN) {
+        if (automaticLogin) {
             emailField.setText("adam.nowak@wp.pl");
             passwordField.setText("adamnowak12345");
 
