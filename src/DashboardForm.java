@@ -5,11 +5,11 @@ import java.sql.*;
 import java.util.*;
 
 public class DashboardForm extends JFrame {
-    private JPanel mainPanel, addGradesPanel;
+    private JPanel mainPanel, addGradesPanel, gradesPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel;
     private JTable gradesTable, studentsTable;
-    private JScrollPane gradesScrollPane, addGradesScrollPane;
+    private JScrollPane addGradesScrollPane;
     private JButton confirmAddGradesButton, logoutButton;
     private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
     private final User user;
@@ -23,7 +23,7 @@ public class DashboardForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
-        setSize(800, 400);
+        setSize(830, 400);
         setResizable(false);
 
         nameLabel.setText(user.getName() + " " + user.getSurname());
@@ -33,7 +33,7 @@ public class DashboardForm extends JFrame {
         tabbedPane.removeAll();
         switch (user.getRole()) {
             case STUDENT -> {
-                tabbedPane.addTab("Moje oceny", gradesScrollPane);
+                tabbedPane.addTab("Moje oceny", gradesPanel);
                 updateGradesTable();
             }
             case TEACHER -> {
