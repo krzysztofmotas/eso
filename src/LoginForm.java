@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,12 +23,7 @@ public class LoginForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
-        pack();
-
-        // usunięcie domyślnych obramowań pól tekstowych i dodanie odstępu tekstu od lewej strony
-        Border fieldsBorder = BorderFactory.createEmptyBorder(0, 20, 0, 0);
-        emailField.setBorder(fieldsBorder);
-        passwordField.setBorder(fieldsBorder);
+        setSize(300, 300);
 
         emailField.setText(EMAIL_PLACEHOLDER);
         passwordField.setText(PASSWORD_PLACEHOLDER);
@@ -94,7 +88,7 @@ public class LoginForm extends JFrame {
                             (maksymalnie 100 znaków)
                         """,
                         "Błąd logowania",
-                        JOptionPane.PLAIN_MESSAGE
+                        JOptionPane.ERROR_MESSAGE
                 );
 
                 return;
@@ -117,7 +111,7 @@ public class LoginForm extends JFrame {
                             - conajmniej jedną cyfrę
                         """,
                         "Błąd logowania",
-                        JOptionPane.PLAIN_MESSAGE
+                        JOptionPane.ERROR_MESSAGE
                 );
 
                 return;
@@ -137,7 +131,7 @@ public class LoginForm extends JFrame {
                             this,
                             "Podano nieprawidłowy adres e-mail lub hasło.",
                             "Błąd logowania",
-                            JOptionPane.PLAIN_MESSAGE
+                            JOptionPane.ERROR_MESSAGE
                     );
 
                     return;
@@ -168,7 +162,7 @@ public class LoginForm extends JFrame {
                         this,
                         "Wystąpił błąd i logowanie nie mogło dojść do skutku.",
                         "Błąd logowania",
-                        JOptionPane.PLAIN_MESSAGE
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         });
