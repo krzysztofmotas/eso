@@ -5,10 +5,10 @@ import java.sql.*;
 import java.util.*;
 
 public class DashboardForm extends JFrame {
-    private JPanel mainPanel, addGradesPanel, gradesPanel;
+    private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel;
-    private JTable gradesTable, studentsTable;
+    private JTable gradesTable, studentsTable, finalGradesTable;
     private JScrollPane addGradesScrollPane;
     private JButton confirmAddGradesButton, logoutButton;
     private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
@@ -35,6 +35,9 @@ public class DashboardForm extends JFrame {
             case STUDENT -> {
                 tabbedPane.addTab("Moje oceny", gradesPanel);
                 updateGradesTable();
+
+                tabbedPane.addTab("Oceny końcowe", finalGradesPanel);
+                updateFinalGradesTable();
             }
             case TEACHER -> {
                 tabbedPane.addTab("Wstawianie ocen", addGradesPanel);
@@ -136,12 +139,60 @@ public class DashboardForm extends JFrame {
         });
     }
 
+    private void updateFinalGradesTable() {
+        try {
+            Connection connection = Database.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM subjects");
+
+            DefaultTableModel defaultTableModel = new DefaultTableModel(
+                    new String[] {
+                            "Przedmiot",
+                            "Średnia ocen",
+                            "Ocena końcowa"
+                    },
+                    0
+            );
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            String sql = """
+                SELECT AVG(grade) AS average_grades FROM grades
+                JOIN accounts ON accounts.id = grades.student_id
+                WHERE grades.subject_id = ? AND accounts.id = ?
+            """;
+
+            while (resultSet.next()) {
+                PreparedStatement ps = connection.prepareStatement(sql);
+                ps.setInt(1, resultSet.getInt("id"));
+                ps.setInt(2, user.getId());
+
+                ResultSet rs = ps.executeQuery();
+                double averageGrades = rs.next() ? rs.getDouble("average_grades") : 0.0;
+
+                defaultTableModel.addRow(
+                        new String[] {
+                                resultSet.getString("name"),
+                                averageGrades == 0.0 ? "-" : String.format("%.2f", averageGrades),
+                                averageGrades == 0.0 ? "-" : String.valueOf(Math.round(averageGrades))
+                        }
+                );
+
+                ps.close();
+            }
+            finalGradesTable.setModel(defaultTableModel);
+
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException exception) {
+            showErrorMessageDialog(exception);
+        }
+    }
+
     private static final String[] gradeTypesList = {
             "Praca domowa",
-            "Kolokwium",
-            "Projekt",
+            "Kartkówka",
+            "Sprawdzian",
             "Aktywność",
-            "Egzamin",
             "Inne"
     };
 

@@ -59,7 +59,7 @@ public class LoginForm extends JFrame {
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (new String(passwordField.getPassword()).isBlank()) {
+                if (String.valueOf(passwordField.getPassword()).isBlank()) {
                     passwordField.setText(PASSWORD_PLACEHOLDER);
                     passwordField.setEchoChar((char) 0);
                     passwordFieldHasPlaceholder = true;
@@ -94,7 +94,7 @@ public class LoginForm extends JFrame {
                 return;
             }
 
-            String password = new String(passwordField.getPassword());
+            String password = String.valueOf(passwordField.getPassword());
 
             if (!Utilities.passwordPatternMatches(password)) {
                 JOptionPane.showMessageDialog(
@@ -168,8 +168,8 @@ public class LoginForm extends JFrame {
         });
 
         if (automaticLogin) {
-            emailField.setText("adam.nowak@wp.pl");
-            passwordField.setText("adamnowak12345");
+            emailField.setText("motas.krzysztof@gmail.com");
+            passwordField.setText("test123456");
 
             emailFieldHasPlaceholder = false;
             passwordFieldHasPlaceholder = false;
