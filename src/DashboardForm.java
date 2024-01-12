@@ -46,10 +46,6 @@ public class DashboardForm extends JFrame {
 
                 tabbedPane.addTab("Raport ocen", gradesReportPanel);
             }
-
-            case ADMIN -> {
-
-            }
         }
 
         tabbedPane.addChangeListener(e -> { // wywoływane podczas zmiany panelu
@@ -58,9 +54,7 @@ public class DashboardForm extends JFrame {
             if (panel.equals(gradesReportPanel)) { // wyczyszczenie zawartości panelu raportu ocen
                 reportNameField.setText("");
                 reportSurnameField.setText("");
-
-                DefaultTableModel tableModel = (DefaultTableModel) reportTable.getModel();
-                tableModel.setRowCount(0);
+                reportTable.setModel(new DefaultTableModel());
            }
         });
 

@@ -1,7 +1,6 @@
 public enum Role {
     STUDENT(0, "Student"),
-    TEACHER(1, "Nauczyciel"),
-    ADMIN(2, "Administrator");
+    TEACHER(1, "Nauczyciel");
 
     private final String name;
     private final int id;
@@ -23,7 +22,6 @@ public enum Role {
         return switch (i) {
             case 0 -> STUDENT;
             case 1 -> TEACHER;
-            case 2 -> ADMIN;
             default -> null;
         };
     }

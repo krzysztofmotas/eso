@@ -158,6 +158,8 @@ public class LoginForm extends JFrame {
                 preparedStatement.close();
                 connection.close();
             } catch (SQLException | NullPointerException exception) {
+                exception.printStackTrace();
+
                 JOptionPane.showMessageDialog(
                         this,
                         "Wystąpił błąd i logowanie nie mogło dojść do skutku.",
