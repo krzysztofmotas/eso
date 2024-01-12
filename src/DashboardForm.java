@@ -5,13 +5,14 @@ import java.sql.*;
 import java.util.*;
 
 public class DashboardForm extends JFrame {
-    private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel;
+    private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel, gradesReportPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel;
-    private JTable gradesTable, studentsTable, finalGradesTable;
+    private JTable gradesTable, studentsTable, finalGradesTable, reportTable;
     private JScrollPane addGradesScrollPane;
-    private JButton confirmAddGradesButton, logoutButton;
+    private JButton confirmAddGradesButton, logoutButton, reportButton;
     private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
+    private JTextField reportNameField, reportSurnameField;
     private final User user;
     private final HashMap<String, Integer> subjectsHashMap = new HashMap<>();
 
@@ -42,12 +43,26 @@ public class DashboardForm extends JFrame {
             case TEACHER -> {
                 tabbedPane.addTab("Wstawianie ocen", addGradesPanel);
                 updateAddGradesPanel();
+
+                tabbedPane.addTab("Raport ocen", gradesReportPanel);
             }
 
             case ADMIN -> {
 
             }
         }
+
+        tabbedPane.addChangeListener(e -> { // wywoływane podczas zmiany panelu
+            JPanel panel = (JPanel) tabbedPane.getSelectedComponent();
+
+            if (panel.equals(gradesReportPanel)) { // wyczyszczenie zawartości panelu raportu ocen
+                reportNameField.setText("");
+                reportSurnameField.setText("");
+
+                DefaultTableModel tableModel = (DefaultTableModel) reportTable.getModel();
+                tableModel.setRowCount(0);
+           }
+        });
 
         confirmAddGradesButton.addActionListener(e -> {
             String selectedSubject = (String) subjectsComboBox.getSelectedItem();
@@ -137,6 +152,115 @@ public class DashboardForm extends JFrame {
             LoginForm loginForm = new LoginForm(false);
             loginForm.setVisible(true);
         });
+
+        reportButton.addActionListener(e -> {
+            String name = reportNameField.getText();
+
+            if (name.isBlank()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Nie podano imienia studenta.",
+                        "Błąd",
+                        JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+            String surname = reportSurnameField.getText();
+
+            if (surname.isBlank()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Nie podano nazwiska studenta.",
+                        "Błąd",
+                        JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+            try {
+                Connection connection = Database.getConnection();
+
+                PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, name, surname FROM accounts WHERE name = ? AND surname = ? AND role = ?");
+                preparedStatement.setString(1, name);
+                preparedStatement.setString(2, surname);
+                preparedStatement.setInt(3, Role.STUDENT.getId());
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    int studentId = resultSet.getInt("id");
+
+                    DefaultTableModel tableModel = new DefaultTableModel(
+                            new String[] {
+                                    "Przedmiot",
+                                    "Oceny",
+                                    "Średnia ocen"
+                            },
+                            0
+                    );
+
+                    // zarówno preparedStatement, jak i resultSet z danymi dotyczącymi studenta nie będą już potrzebne
+                    preparedStatement.close();
+                    preparedStatement = connection.prepareStatement("SELECT * FROM subjects");
+
+                    resultSet = preparedStatement.executeQuery();
+                    while (resultSet.next()) {
+                        PreparedStatement ps = connection.prepareStatement("SELECT grade FROM grades WHERE subject_id = ? AND student_id = ?");
+                        ps.setInt(1, resultSet.getInt("id")); // subject_id
+                        ps.setInt(2, studentId);
+
+                        String subjectName = resultSet.getString("name");
+                        StringBuilder gradesString = new StringBuilder();
+
+                        ResultSet rs = ps.executeQuery();
+                        double gradesSum = 0;
+                        int gradesCount = 0;
+
+                        while (rs.next()) {
+                            double grade = rs.getDouble("grade");
+                            gradesSum += grade;
+
+                            if (!gradesString.isEmpty()) {
+                                gradesString.append(", ");
+                            }
+
+                            gradesString.append(grade);
+                            gradesCount++;
+                        }
+
+                        if (gradesString.isEmpty()) {
+                            gradesString.append("-");
+                        }
+
+                        tableModel.addRow(
+                                new String[] {
+                                        subjectName,
+                                        gradesString.toString(),
+                                        gradesSum == 0.0 ? "-" : String.valueOf(gradesSum / gradesCount)
+                                }
+                        );
+
+                        ps.close();
+                    }
+
+                    reportTable.setModel(tableModel);
+                } else {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Nie znaleziono studenta o podanym imieniu i nazwisku.",
+                            "Informacja",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                }
+
+                preparedStatement.close();
+                connection.close();
+            } catch (SQLException exception) {
+                showErrorMessageDialog(exception);
+            }
+        });
     }
 
     private void updateFinalGradesTable() {
@@ -156,7 +280,7 @@ public class DashboardForm extends JFrame {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             String sql = """
-                SELECT AVG(grade) AS average_grades FROM grades
+                SELECT AVG(grade) AS average_grade FROM grades
                 JOIN accounts ON accounts.id = grades.student_id
                 WHERE grades.subject_id = ? AND accounts.id = ?
             """;
@@ -167,13 +291,13 @@ public class DashboardForm extends JFrame {
                 ps.setInt(2, user.getId());
 
                 ResultSet rs = ps.executeQuery();
-                double averageGrades = rs.next() ? rs.getDouble("average_grades") : 0.0;
+                double averageGrade = rs.next() ? rs.getDouble("average_grade") : 0.0;
 
                 defaultTableModel.addRow(
                         new String[] {
                                 resultSet.getString("name"),
-                                averageGrades == 0.0 ? "-" : String.format("%.2f", averageGrades),
-                                averageGrades == 0.0 ? "-" : String.valueOf(Math.round(averageGrades))
+                                averageGrade == 0.0 ? "-" : String.format("%.2f", averageGrade),
+                                averageGrade == 0.0 ? "-" : String.valueOf(Math.round(averageGrade))
                         }
                 );
 
@@ -190,8 +314,8 @@ public class DashboardForm extends JFrame {
 
     private static final String[] gradeTypesList = {
             "Praca domowa",
-            "Kartkówka",
-            "Sprawdzian",
+            "Wejściówka",
+            "Kolokwium",
             "Aktywność",
             "Inne"
     };
@@ -309,7 +433,6 @@ public class DashboardForm extends JFrame {
 
             DefaultTableModel defaultTableModel = new DefaultTableModel(
                     new String[] {
-                            "Lp.",
                             "Przedmiot",
                             "Nauczyciel",
                             "Data wstawienia",
@@ -321,11 +444,9 @@ public class DashboardForm extends JFrame {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            int lp = 1;
             while (resultSet.next()) {
                 defaultTableModel.addRow(
                         new String[] {
-                                String.format("%d.", lp),
                                 resultSet.getString("subject_name"),
                                 resultSet.getString("name") + " " + resultSet.getString("surname"),
                                 resultSet.getString("date"),
@@ -333,8 +454,6 @@ public class DashboardForm extends JFrame {
                                 resultSet.getString("grade")
                         }
                 );
-
-                lp++;
             }
             gradesTable.setModel(defaultTableModel);
 

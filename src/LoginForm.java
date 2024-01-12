@@ -168,8 +168,8 @@ public class LoginForm extends JFrame {
         });
 
         if (automaticLogin) {
-            emailField.setText("motas.krzysztof@gmail.com");
-            passwordField.setText("test123456");
+            emailField.setText("adam.nowak@wp.pl");
+            passwordField.setText("adamnowak12345");
 
             emailFieldHasPlaceholder = false;
             passwordFieldHasPlaceholder = false;
