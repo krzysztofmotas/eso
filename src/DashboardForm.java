@@ -5,7 +5,7 @@ import java.sql.*;
 import java.util.*;
 
 public class DashboardForm extends JFrame {
-    private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel, gradesReportPanel;
+    private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel, gradesReportPanel, statsPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel, logoLabel;
     private JTable gradesTable, studentsTable, finalGradesTable, reportTable;
@@ -13,6 +13,7 @@ public class DashboardForm extends JFrame {
     private JButton confirmAddGradesButton, logoutButton, reportButton;
     private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
     private JTextField reportNameField, reportSurnameField;
+    private JTable statsTable;
     private final User user;
     private final HashMap<String, Integer> subjectsHashMap = new HashMap<>();
 
@@ -48,6 +49,7 @@ public class DashboardForm extends JFrame {
                 updateAddGradesPanel();
 
                 tabbedPane.addTab("Raport ocen", gradesReportPanel);
+                tabbedPane.addTab("Statystyki", statsPanel);
             }
         }
 
@@ -58,7 +60,9 @@ public class DashboardForm extends JFrame {
                 reportNameField.setText("");
                 reportSurnameField.setText("");
                 reportTable.setModel(new DefaultTableModel());
-           }
+           } else if (panel.equals(statsPanel)) {
+                updateStatsPanel();
+            }
         });
 
         confirmAddGradesButton.addActionListener(e -> {
@@ -235,7 +239,7 @@ public class DashboardForm extends JFrame {
                                 new String[] {
                                         subjectName,
                                         gradesString.toString(),
-                                        gradesSum == 0.0 ? "-" : String.valueOf(gradesSum / gradesCount)
+                                        gradesSum == 0.0 ? "-" : String.format("%.2f", gradesSum / gradesCount)
                                 }
                         );
 
@@ -243,6 +247,8 @@ public class DashboardForm extends JFrame {
                     }
 
                     reportTable.setModel(tableModel);
+                    Utilities.centerTextInColumns(reportTable);
+                    Utilities.resizeColumnWidth(reportTable);
                 } else {
                     JOptionPane.showMessageDialog(
                             this,
@@ -301,6 +307,8 @@ public class DashboardForm extends JFrame {
                 ps.close();
             }
             finalGradesTable.setModel(defaultTableModel);
+            Utilities.centerTextInColumns(finalGradesTable);
+            Utilities.resizeColumnWidth(finalGradesTable);
 
             preparedStatement.close();
             connection.close();
@@ -404,6 +412,8 @@ public class DashboardForm extends JFrame {
 
             addGradesScrollPane.add(studentsTable);
             addGradesScrollPane.setViewportView(studentsTable);
+            Utilities.centerTextInColumns(studentsTable);
+            Utilities.resizeColumnWidth(studentsTable);
 
             preparedStatement.close();
             statement.close();
@@ -453,6 +463,103 @@ public class DashboardForm extends JFrame {
                 );
             }
             gradesTable.setModel(defaultTableModel);
+            Utilities.centerTextInColumns(gradesTable);
+            Utilities.resizeColumnWidth(gradesTable);
+
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException exception) {
+            showErrorMessageDialog(exception);
+        }
+    }
+
+    private void updateStatsPanel() {
+        try {
+            Connection connection = Database.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM subjects");
+
+            DefaultTableModel tableModel = new DefaultTableModel(
+                    new String[] {
+                            "Przedmiot",
+                            "Najniższa średnia ocen",
+                            "Najwyższa średnia ocen",
+                            "Średnia ocen",
+                            "Mediana ocen"
+                    },
+                    0
+            );
+
+            String meanSql = """
+                   SELECT accounts.name, accounts.surname, AVG(grade) as mean FROM accounts
+                   JOIN grades ON grades.student_id = accounts.id
+                   WHERE grades.subject_id = ?
+                   GROUP BY accounts.id
+                   ORDER BY mean
+            """;
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                Vector<String> rowData = new Vector<>();
+
+                int subjectId = resultSet.getInt("id");
+                rowData.add(resultSet.getString("name"));
+
+                // szukamy studenta z najniższą średnią ocen z tego przedmiotu
+                PreparedStatement ps = connection.prepareStatement(meanSql + " ASC LIMIT 1");
+                ps.setInt(1, subjectId);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    rowData.add(String.format("%.2f (%s %s)", rs.getDouble("mean"), rs.getString("name"), rs.getString("surname")));
+
+                    // zamykamy ps i szukamy studenta z najwyższą śednią ocen z tego przedmiotu
+                    ps.close();
+                    ps = connection.prepareStatement(meanSql + " DESC LIMIT 1");
+                    ps.setInt(1, subjectId);
+
+                    rs = ps.executeQuery();
+                    rs.next();
+                    rowData.add(String.format("%.2f (%s %s)", rs.getDouble("mean"), rs.getString("name"), rs.getString("surname")));
+
+                    // średnia ocen z tego przedmiotu
+                    ps.close();
+                    ps = connection.prepareStatement("""
+                        SELECT AVG(grade) AS mean FROM grades
+                        JOIN subjects ON subjects.id = grades.subject_id
+                        WHERE grades.subject_id = ?
+                    """);
+
+                    ps.setInt(1, subjectId);
+                    rs = ps.executeQuery();
+                    rs.next();
+                    rowData.add(String.format("%.2f", rs.getDouble("mean")));
+
+                    // mediana ocen z tego przedmiotu
+                    // https://stackoverflow.com/questions/64755680/calculating-a-simple-median-on-a-column-in-mysql
+                    ps.close();
+                    ps = connection.prepareStatement("""
+                        SELECT DISTINCT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY grades.grade) OVER () median FROM grades
+                        JOIN subjects ON subjects.id = grades.subject_id
+                        WHERE grades.subject_id = ?
+                    """);
+
+                    ps.setInt(1, subjectId);
+                    rs = ps.executeQuery();
+                    rs.next();
+                    rowData.add(String.format("%.2f", rs.getDouble("median")));
+                    ps.close();
+                } else {
+                    for (int i = 0; i < 4; i++) { // brak ocen z tego przedmiotu
+                        rowData.add("-");
+                    }
+                }
+
+                tableModel.addRow(rowData);
+            }
+
+            statsTable.setModel(tableModel);
+            Utilities.centerTextInColumns(statsTable);
+            Utilities.resizeColumnWidth(statsTable);
 
             preparedStatement.close();
             connection.close();
