@@ -9,6 +9,9 @@ public class Main {
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
+            UIManager.put("TabbedPane.showTabSeparators", true);
+            UIManager.put("TabbedPane.tabSeparatorsFullHeight", true);
+            UIManager.put("TabbedPane.selectedBackground", new Color(222, 230, 237));
 
             EventQueue.invokeLater(() -> {
                 try {
