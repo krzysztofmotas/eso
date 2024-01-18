@@ -1,6 +1,8 @@
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
+import java.awt.*;
 import java.sql.*;
 import java.util.*;
 
@@ -8,12 +10,11 @@ public class DashboardForm extends JFrame {
     private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel, gradesReportPanel, statsPanel;
     private JTabbedPane tabbedPane;
     private JLabel nameLabel, emailLabel, roleNameLabel, logoLabel;
-    private JTable gradesTable, studentsTable, finalGradesTable, reportTable;
+    private JTable gradesTable, studentsTable, finalGradesTable, reportTable, statsTable;
     private JScrollPane addGradesScrollPane;
     private JButton confirmAddGradesButton, logoutButton, reportButton;
     private JComboBox<String> subjectsComboBox, gradesTypeComboBox;
     private JTextField reportNameField, reportSurnameField;
-    private JTable statsTable;
     private final User user;
     private final HashMap<String, Integer> subjectsHashMap = new HashMap<>();
 
@@ -25,31 +26,43 @@ public class DashboardForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
-        setSize(830, 400);
+        setSize(700, 400);
         setResizable(false);
 
-        Utilities.setLabelIconToProjectLogo(logoLabel, 0.2f);
+        Utilities.setLabelIconToProjectLogo(logoLabel, 0.15f);
         Utilities.setIconToProjectIcon(this);
 
         nameLabel.setText(user.getName() + " " + user.getSurname());
         emailLabel.setText(user.getEmailAddress());
         roleNameLabel.setText(user.getRole().getName());
 
+        // zmiana koloru ikon .svg na kolor GUI
+        Color c = UIManager.getColor("ProgressBar.foreground");
+        FlatSVGIcon.ColorFilter.getInstance().add(new Color(28, 39, 76), c);
+        FlatSVGIcon.ColorFilter.getInstance().add(new Color(28, 39, 77), c);
+
+        float scale = 0.025f;
         tabbedPane.removeAll();
         switch (user.getRole()) {
             case STUDENT -> {
                 tabbedPane.addTab("Moje oceny", gradesPanel);
+                tabbedPane.setIconAt(0, new FlatSVGIcon("img/crown-star.svg", scale));
                 updateGradesTable();
 
                 tabbedPane.addTab("Oceny końcowe", finalGradesPanel);
+                tabbedPane.setIconAt(1, new FlatSVGIcon("img/academic-cap.svg", scale));
                 updateFinalGradesTable();
             }
             case TEACHER -> {
                 tabbedPane.addTab("Wstawianie ocen", addGradesPanel);
+                tabbedPane.setIconAt(0, new FlatSVGIcon("img/add.svg", scale));
                 updateAddGradesPanel();
 
                 tabbedPane.addTab("Raport ocen", gradesReportPanel);
+                tabbedPane.setIconAt(1, new FlatSVGIcon("img/list.svg", scale));
+
                 tabbedPane.addTab("Statystyki", statsPanel);
+                tabbedPane.setIconAt(2, new FlatSVGIcon("img/pie-chart.svg", scale));
             }
         }
 
