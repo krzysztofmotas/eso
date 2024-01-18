@@ -1,3 +1,9 @@
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 public class Utilities {
@@ -21,5 +27,18 @@ public class Utilities {
         return Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$").
                 matcher(password).
                 matches();
+    }
+
+    public static void setLabelIconToProjectLogo(JLabel label, float scale) {
+        FlatSVGIcon flatSVGIcon = new FlatSVGIcon("img/logo.svg", scale);
+        label.setIcon(flatSVGIcon);
+    }
+
+    public static void setIconToProjectIcon(JFrame frame) {
+        try {
+            frame.setIconImage(ImageIO.read(new File("src/img/icon.png")));
+        } catch (IOException | IllegalArgumentException e) {
+            System.out.println("Wystąpił błąd przy wczytywaniu icon.png.");
+        }
     }
 }

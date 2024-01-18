@@ -16,14 +16,18 @@ public class LoginForm extends JFrame {
     private JButton loginButton;
     private JTextField emailField;
     private JPasswordField passwordField;
+    private JLabel logoLabel;
 
     public LoginForm(boolean automaticLogin) {
-        setTitle("Elektroniczny system oceniania");
+        setTitle("Logowanie");
         setResizable(false);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
         setSize(300, 300);
+
+        Utilities.setLabelIconToProjectLogo(logoLabel, 0.15f);
+        Utilities.setIconToProjectIcon(this);
 
         emailField.setText(EMAIL_PLACEHOLDER);
         passwordField.setText(PASSWORD_PLACEHOLDER);

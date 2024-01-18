@@ -7,7 +7,7 @@ import java.util.*;
 public class DashboardForm extends JFrame {
     private JPanel mainPanel, addGradesPanel, gradesPanel, finalGradesPanel, gradesReportPanel;
     private JTabbedPane tabbedPane;
-    private JLabel nameLabel, emailLabel, roleNameLabel;
+    private JLabel nameLabel, emailLabel, roleNameLabel, logoLabel;
     private JTable gradesTable, studentsTable, finalGradesTable, reportTable;
     private JScrollPane addGradesScrollPane;
     private JButton confirmAddGradesButton, logoutButton, reportButton;
@@ -19,13 +19,16 @@ public class DashboardForm extends JFrame {
     public DashboardForm(User user) {
         this.user = user;
 
-        setTitle("Elektroniczny system oceniania");
+        setTitle("Panel zarządzania");
         setResizable(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
         setSize(830, 400);
         setResizable(false);
+
+        Utilities.setLabelIconToProjectLogo(logoLabel, 0.2f);
+        Utilities.setIconToProjectIcon(this);
 
         nameLabel.setText(user.getName() + " " + user.getSurname());
         emailLabel.setText(user.getEmailAddress());
