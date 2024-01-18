@@ -26,7 +26,7 @@ public class DashboardForm extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
-        setSize(700, 400);
+        setSize(700, 450);
         setResizable(false);
 
         Utilities.setLabelIconToProjectLogo(logoLabel, 0.15f);
