@@ -74,4 +74,12 @@ public class Utilities {
             columnModel.getColumn(column).setPreferredWidth((int) width);
         }
     }
+
+    // https://stackoverflow.com/questions/144892/how-to-center-a-window-in-java
+    public static void centreWindow(Window frame) {
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
+        int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
+        frame.setLocation(x, y);
+    }
 }

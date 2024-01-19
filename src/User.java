@@ -3,10 +3,6 @@ public class User {
     private String emailAddress, name, surname;
     private Role role;
 
-    public User() {
-
-    }
-
     public User(int id, String emailAddress, String name, String surname, Role role) {
         setId(id);
         setEmailAddress(emailAddress);

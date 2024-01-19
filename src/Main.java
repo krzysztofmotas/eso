@@ -1,11 +1,10 @@
 import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class Main {
-    public static boolean AUTOMATIC_LOGIN = true; // TODO: do usunięcia po skończeniu projektu
-
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
@@ -15,7 +14,8 @@ public class Main {
 
             EventQueue.invokeLater(() -> {
                 try {
-                    Database.getConnection();
+                    Connection connection = Database.getConnection();
+                    connection.close();
                 } catch (SQLException exception) {
                     exception.printStackTrace();
 
@@ -29,11 +29,8 @@ public class Main {
                     return;
                 }
 
-                LoginForm loginForm = new LoginForm(AUTOMATIC_LOGIN);
-
-                if (!AUTOMATIC_LOGIN) {
-                    loginForm.setVisible(true);
-                }
+                LoginForm loginForm = new LoginForm();
+                loginForm.setVisible(true);
             });
         } catch (UnsupportedLookAndFeelException exception) {
             exception.printStackTrace();

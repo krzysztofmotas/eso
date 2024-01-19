@@ -1,85 +1,28 @@
 import javax.swing.*;
-import java.awt.event.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class LoginForm extends JFrame {
-    private static final String EMAIL_PLACEHOLDER = "Podaj adres e-mail",
-                                PASSWORD_PLACEHOLDER = "Podaj hasło";
-
-    private boolean emailFieldHasPlaceholder = true,
-                    passwordFieldHasPlaceholder = true;
-
     private JPanel mainPanel;
     private JButton loginButton;
     private JTextField emailField;
     private JPasswordField passwordField;
     private JLabel logoLabel;
 
-    public LoginForm(boolean automaticLogin) {
+    public LoginForm() {
         setTitle("Logowanie");
         setResizable(false);
-        setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
-        setSize(300, 300);
+        setSize(325, 325);
 
+        Utilities.centreWindow(this);
         Utilities.setLabelIconToProjectLogo(logoLabel, 0.15f);
         Utilities.setIconToProjectIcon(this);
-
-        emailField.setText(EMAIL_PLACEHOLDER);
-        passwordField.setText(PASSWORD_PLACEHOLDER);
-        passwordField.setEchoChar((char) 0);
-
-        emailField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (emailFieldHasPlaceholder) {
-                    emailField.setText("");
-                    emailFieldHasPlaceholder = false;
-                }
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (emailField.getText().isBlank()) {
-                    emailField.setText(EMAIL_PLACEHOLDER);
-                    emailFieldHasPlaceholder = true;
-                }
-            }
-        });
-
-        passwordField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (passwordFieldHasPlaceholder) {
-                    passwordField.setText("");
-                    passwordField.setEchoChar('•');
-                    passwordFieldHasPlaceholder = false;
-                }
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (String.valueOf(passwordField.getPassword()).isBlank()) {
-                    passwordField.setText(PASSWORD_PLACEHOLDER);
-                    passwordField.setEchoChar((char) 0);
-                    passwordFieldHasPlaceholder = true;
-                }
-            }
-        });
-
 
         // umożliwienie zatwierdzenia danych poprzez klawisz enter
         getRootPane().setDefaultButton(loginButton);
 
         loginButton.addActionListener(e -> {
-            if (emailFieldHasPlaceholder || passwordFieldHasPlaceholder) {
-                return;
-            }
-
             String emailAddress = emailField.getText();
 
             if (!Utilities.emailPatternMatches(emailAddress)) {
@@ -87,7 +30,7 @@ public class LoginForm extends JFrame {
                         this,
                         """
                             Podano nieprawidłowy format adresu e-mail!
-                            Przykład: example@gmail.com
+                            Przykład: name@example.com
                             
                             (maksymalnie 100 znaków)
                         """,
@@ -172,15 +115,5 @@ public class LoginForm extends JFrame {
                 );
             }
         });
-
-        if (automaticLogin) {
-            emailField.setText("adam.nowak@example.com");
-            passwordField.setText("adamnowak12345");
-
-            emailFieldHasPlaceholder = false;
-            passwordFieldHasPlaceholder = false;
-
-            loginButton.doClick();
-        }
     }
 }

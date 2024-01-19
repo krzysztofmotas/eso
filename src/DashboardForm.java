@@ -23,12 +23,12 @@ public class DashboardForm extends JFrame {
 
         setTitle("Panel zarządzania");
         setResizable(true);
-        setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(mainPanel);
         setSize(700, 450);
         setResizable(false);
 
+        Utilities.centreWindow(this);
         Utilities.setLabelIconToProjectLogo(logoLabel, 0.15f);
         Utilities.setIconToProjectIcon(this);
 
@@ -139,7 +139,7 @@ public class DashboardForm extends JFrame {
                 if (gradesCount == 0) {
                     JOptionPane.showMessageDialog(
                             this,
-                            "Nie została dodana żadna nowa ocena.",
+                            "Nie została dodana żadna nowa ocena!",
                             "Ostrzeżenie",
                             JOptionPane.WARNING_MESSAGE
                     );
@@ -163,7 +163,7 @@ public class DashboardForm extends JFrame {
         logoutButton.addActionListener(e -> {
             dispose();
 
-            LoginForm loginForm = new LoginForm(false);
+            LoginForm loginForm = new LoginForm();
             loginForm.setVisible(true);
         });
 
@@ -173,7 +173,7 @@ public class DashboardForm extends JFrame {
             if (name.isBlank()) {
                 JOptionPane.showMessageDialog(
                         null,
-                        "Nie podano imienia studenta.",
+                        "Nie podano imienia studenta!",
                         "Błąd",
                         JOptionPane.ERROR_MESSAGE
                 );
@@ -186,7 +186,7 @@ public class DashboardForm extends JFrame {
             if (surname.isBlank()) {
                 JOptionPane.showMessageDialog(
                         null,
-                        "Nie podano nazwiska studenta.",
+                        "Nie podano nazwiska studenta!",
                         "Błąd",
                         JOptionPane.ERROR_MESSAGE
                 );
