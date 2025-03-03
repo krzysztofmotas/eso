@@ -2,7 +2,7 @@
 
 <img src="src/img/logo.svg" width="400px">
 
-Projekt zaliczeniowy laboratorium przedmiotu **"Programowanie obiektowe" Uniwersytetu Rzeszowskiego.**
+Projekt zaliczeniowy laboratorium przedmiotu **"Programowanie obiektowe"**.
 
 ## Opis projektu
 Elektroniczny System Oceniania to aplikacja desktopowa ułatwiająca nauczycielom zarządzanie ocenami studentów. Umożliwia dodawanie, edytowanie i przeglądanie wyników oraz generowanie raportów i statystyk. Studenci mogą przeglądać swoje oceny w intuicyjnym interfejsie.
